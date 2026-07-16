@@ -1,0 +1,10 @@
+@import 'tailwindcss';
+
+:root {
+  --color-brand: #4338ca;
+  --color-brand-hover: #3730a3;
+}
+
+body {
+  margin: 0;
+}
