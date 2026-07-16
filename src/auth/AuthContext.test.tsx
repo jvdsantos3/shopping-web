@@ -19,7 +19,7 @@ describe('AuthContext', () => {
   it('stores the access token and user after a successful login', async () => {
     vi.mocked(mockedLogin).mockResolvedValue({
       accessToken: 'token-123',
-      user: { id: '1', nome: 'Ana Admin', email: 'admin@shopping.local', perfil: 'admin' },
+      user: { id: '1', name: 'Ana Admin', email: 'admin@shopping.local', role: 'admin' },
     })
 
     const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider })
@@ -30,20 +30,20 @@ describe('AuthContext', () => {
 
     expect(result.current.isAuthenticated).toBe(true)
     expect(result.current.accessToken).toBe('token-123')
-    expect(result.current.user?.nome).toBe('Ana Admin')
+    expect(result.current.user?.name).toBe('Ana Admin')
 
     const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? 'null')
     expect(stored.accessToken).toBe('token-123')
   })
 
   it('keeps the session empty when login fails with invalid credentials', async () => {
-    vi.mocked(mockedLogin).mockRejectedValue(new ApiError('Credenciais inválidas', 401))
+    vi.mocked(mockedLogin).mockRejectedValue(new ApiError('Credenciais inválidas.', 401))
 
     const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider })
 
     await act(async () => {
       await expect(result.current.login('admin@shopping.local', 'wrong')).rejects.toThrow(
-        'Credenciais inválidas',
+        'Credenciais inválidas.',
       )
     })
 

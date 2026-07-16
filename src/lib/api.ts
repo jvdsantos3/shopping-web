@@ -1,12 +1,12 @@
 export const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
 
-export type Perfil = 'solicitante' | 'compras' | 'diretor' | 'admin'
+export type Role = 'requester' | 'purchasing' | 'director' | 'admin'
 
 export interface AuthenticatedUser {
   id: string
-  nome: string
+  name: string
   email: string
-  perfil: Perfil
+  role: Role
 }
 
 export interface LoginResult {
@@ -26,6 +26,18 @@ export class ApiError extends Error {
 
 const DEFAULT_ERROR_MESSAGE = 'Não foi possível autenticar. Tente novamente.'
 
+// The API answers in English (AD-010) — the web layer maps status codes to
+// the PT-BR messages shown in the UI instead of passing raw API text through.
+function messageForStatus(status: number): string {
+  if (status === 401) {
+    return 'Credenciais inválidas.'
+  }
+  if (status === 400 || status === 422) {
+    return 'Dados inválidos. Verifique email e senha.'
+  }
+  return DEFAULT_ERROR_MESSAGE
+}
+
 export async function login(email: string, password: string): Promise<LoginResult> {
   let response: Response
   try {
@@ -38,15 +50,10 @@ export async function login(email: string, password: string): Promise<LoginResul
     throw new ApiError('Não foi possível conectar ao servidor.', 0)
   }
 
-  const body: unknown = await response.json().catch(() => null)
-
   if (!response.ok) {
-    const message =
-      body && typeof body === 'object' && 'message' in body && typeof body.message === 'string'
-        ? body.message
-        : DEFAULT_ERROR_MESSAGE
-    throw new ApiError(message, response.status)
+    throw new ApiError(messageForStatus(response.status), response.status)
   }
 
+  const body: unknown = await response.json().catch(() => null)
   return body as LoginResult
 }

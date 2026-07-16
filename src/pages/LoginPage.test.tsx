@@ -36,7 +36,7 @@ describe('LoginPage', () => {
     const user = userEvent.setup()
     vi.mocked(mockedLogin).mockResolvedValue({
       accessToken: 'token-abc',
-      user: { id: '1', nome: 'Ana Admin', email: 'admin@shopping.local', perfil: 'admin' },
+      user: { id: '1', name: 'Ana Admin', email: 'admin@shopping.local', role: 'admin' },
     })
 
     renderLoginPage()
@@ -54,7 +54,7 @@ describe('LoginPage', () => {
 
   it('shows an error message and does not store a session when login fails', async () => {
     const user = userEvent.setup()
-    vi.mocked(mockedLogin).mockRejectedValue(new ApiError('Credenciais inválidas', 401))
+    vi.mocked(mockedLogin).mockRejectedValue(new ApiError('Credenciais inválidas.', 401))
 
     renderLoginPage()
 
@@ -62,8 +62,21 @@ describe('LoginPage', () => {
     await user.type(screen.getByLabelText('Senha'), 'wrong-password')
     await user.click(screen.getByRole('button', { name: 'Entrar' }))
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('Credenciais inválidas')
+    expect(await screen.findByRole('alert')).toHaveTextContent('Credenciais inválidas.')
     expect(localStorage.getItem(STORAGE_KEY)).toBeNull()
     expect(screen.queryByText('Home shell')).not.toBeInTheDocument()
+  })
+
+  it('shows a client-side Portuguese error and never calls login for an invalid email', async () => {
+    const user = userEvent.setup()
+
+    renderLoginPage()
+
+    await user.type(screen.getByLabelText('Email'), 'not-an-email')
+    await user.type(screen.getByLabelText('Senha'), 'Senha123!')
+    await user.click(screen.getByRole('button', { name: 'Entrar' }))
+
+    expect(await screen.findByText('Informe um email válido.')).toBeInTheDocument()
+    expect(mockedLogin).not.toHaveBeenCalled()
   })
 })

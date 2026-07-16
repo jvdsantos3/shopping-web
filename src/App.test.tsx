@@ -33,13 +33,13 @@ describe('App', () => {
       STORAGE_KEY,
       JSON.stringify({
         accessToken: 'token-xyz',
-        user: { id: '1', nome: 'Ana Admin', email: 'admin@shopping.local', perfil: 'admin' },
+        user: { id: '1', name: 'Ana Admin', email: 'admin@shopping.local', role: 'admin' },
       }),
     )
 
     renderApp('/')
 
     expect(screen.getByText(/Bem-vindo\(a\), Ana Admin/)).toBeInTheDocument()
-    expect(screen.getAllByText('Admin').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Administrador').length).toBeGreaterThan(0)
   })
 })

@@ -2,6 +2,7 @@ import { Field } from '@base-ui/react/field'
 import { useState, type FormEvent } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
+import { validateLoginForm } from '../lib/login-schema'
 
 const inputClassName =
   'w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition-colors focus:border-[var(--color-brand)] focus:ring-2 focus:ring-[var(--color-brand)]/20'
@@ -14,6 +15,7 @@ export function LoginPage() {
   const location = useLocation()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({})
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -25,8 +27,14 @@ export function LoginPage() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setError(null)
-    setIsSubmitting(true)
 
+    const validationErrors = validateLoginForm({ email, password })
+    setFieldErrors(validationErrors)
+    if (Object.keys(validationErrors).length > 0) {
+      return
+    }
+
+    setIsSubmitting(true)
     try {
       await login(email, password)
       navigate('/', { replace: true })
@@ -59,6 +67,7 @@ export function LoginPage() {
             onValueChange={(value) => setEmail(value)}
             className={inputClassName}
           />
+          {fieldErrors.email ? <p className="text-sm text-red-600">{fieldErrors.email}</p> : null}
         </Field.Root>
 
         <Field.Root className="space-y-1">
@@ -71,6 +80,7 @@ export function LoginPage() {
             onValueChange={(value) => setPassword(value)}
             className={inputClassName}
           />
+          {fieldErrors.password ? <p className="text-sm text-red-600">{fieldErrors.password}</p> : null}
         </Field.Root>
 
         {error ? (
