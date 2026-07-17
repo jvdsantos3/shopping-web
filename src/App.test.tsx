@@ -1,10 +1,18 @@
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
 import { AuthProvider } from './auth/AuthContext'
 
 const STORAGE_KEY = 'shopping-web:auth'
+
+vi.mock('./lib/api', async () => {
+  const actual = await vi.importActual<typeof import('./lib/api')>('./lib/api')
+  return {
+    ...actual,
+    listMyPurchaseRequests: vi.fn().mockResolvedValue([]),
+  }
+})
 
 function renderApp(initialPath = '/') {
   return render(
@@ -41,5 +49,6 @@ describe('App', () => {
 
     expect(screen.getByText(/Bem-vindo\(a\), Ana Admin/)).toBeInTheDocument()
     expect(screen.getAllByText('Administrador').length).toBeGreaterThan(0)
+    expect(screen.getAllByRole('link', { name: /Nova solicitação/i }).length).toBeGreaterThan(0)
   })
 })
